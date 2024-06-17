@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int          @id  @default(autoincrement())
+  email           String       @unique @db.VarChar(30)
+  password        String?      @db.VarChar(255)
+  role            Role         @relation(fields: [roleId], references: [id])
+  roleId          Int          @default(1)
+  profile         String?      @db.VarChar(50) @default("profile.webp")
+  prefix          String?      @db.VarChar(6) @default("นาย")
+  firstname       String?      @db.VarChar(50)
+  lastname        String?      @db.VarChar(50)
+  birthday        String?      @default("2000-01-01") @db.VarChar(10)
+  phone           String?      @db.VarChar(10)
+  createdAt       DateTime?    @default(now())
+  dormitory       Dormitory[]
+  favorite        Favorite[]
+  reserve         Reserve[]
+  review          Review[]
+  chat            Chat[]
+}
+
+model Role {
+  id      Int                 @id @default(autoincrement())
+  role   String              @default("user") @db.VarChar(12)
+  user    User[]
+}
+
+model Favorite {
+  id              Int         @id @default(autoincrement())
+  user            User        @relation(fields: [userId], references: [id])
+  userId          Int
+  dormitory       Dormitory   @relation(fields: [dmtId], references: [id])
+  dmtId           Int
+}
+
+model Reserve {
+  id              Int         @id @default(autoincrement())
+  user            User        @relation(fields: [userId], references: [id])
+  userId          Int     
+  dormitory       Dormitory   @relation(fields: [dmtId], references: [id])
+  dmtId           Int     
+}
+
+model Review {
+  id              Int         @id @default(autoincrement())
+  user            User        @relation(fields: [userId], references: [id])
+  userId          Int
+  dormitory       Dormitory   @relation(fields: [dmtId], references: [id])
+  dmtId           Int 
+  content         String?     @db.VarChar(255)
+  score           Int
+  createdAt       DateTime?   @default(now())
+}
+
+model Chat {
+  id              Int         @id @default(autoincrement())
+  user            User        @relation(fields: [userId], references: [id])
+  userId          Int
+  dormitory       Dormitory   @relation(fields: [dmtId], references: [id])
+  dmtId           Int
+  chat_msg        Chat_msg[]
+}
+
+model Chat_msg {
+  id              Int         @id @default(autoincrement())
+  chat            Chat        @relation(fields: [chatId], references: [id])
+  chatId          Int
+  content         String      @db.VarChar(255)
+  state_chat      Boolean
+  read_user       Boolean?    @default(false)
+  read_dmt        Boolean?    @default(false)
+  createdAt       DateTime?   @default(now())
+}
+
+model Dormitory {
+  id              Int         @id @default(autoincrement())
+  name            String      @db.VarChar(30)
+  user            User        @relation(fields: [userId], references: [id])
+  userId          Int         
+  img             String?     @db.VarChar(50)
+  location        String?     @db.VarChar(50)
+  price           Int
+  doc             String?     @db.VarChar(100)
+  state           Boolean?    @default(false)
+  zone            String?     @db.VarChar(20)
+  facebook        String?     @db.VarChar(70)
+  line            String?     @db.VarChar(40)
+  phone           String?     @db.VarChar(10)
+  occupied        Boolean?    @default(false)
+  view            Int?        @default(0)
+  reviewScore     Decimal?     @default(0.0)
+  createdAt       DateTime?   @default(now())
+  favorite        Favorite[]
+  reserve         Reserve[]
+  review          Review[]
+  chat            Chat[]
+  dormitory_type  Dormitory_type[]
+  dormitory_state Dormitory_state?
+}
+
+model Dormitory_type {
+  id              Int         @id @default(autoincrement())
+  dormitory       Dormitory   @relation(fields: [dmtId], references: [id])
+  dmtId           Int
+  name            String      @db.VarChar(50)
+  price           Int?        @default(0)
+  quantity        Int?        @default(0)
+  occupied        Int?        @default(0)
+  width           Int?
+  length          Int?
+  dormitory_img   Dormitory_img[]
+  dormitory_facilitate   Dormitory_facilitate?
+
+}
+
+model Dormitory_img {
+  id              Int               @id @default(autoincrement())
+  dormitory_type  Dormitory_type    @relation(fields: [dmt_typeId], references: [id])
+  dmt_typeId      Int
+  url             String            @db.VarChar(50)
+}
+
+model Dormitory_state {
+  id              Int         @id @default(autoincrement())
+  dormitory       Dormitory   @relation(fields: [dmtId], references: [id])
+  dmtId           Int         @unique
+  park_car        Boolean?    @default(false)
+  park_motorcycle Boolean?    @default(false)           
+  lift            Boolean?    @default(false)
+  security_door   Boolean?    @default(false)
+  fingerprint     Boolean?    @default(false)
+  keycard         Boolean?    @default(false)
+  man             Boolean?    @default(false)
+  female          Boolean?    @default(false)
+  animal          Boolean?    @default(false)
+  fitness         Boolean?    @default(false)
+  wifi            Boolean?    @default(false)
+  cctv            Boolean?    @default(false)
+  security_guard  Boolean?    @default(false)
+  smoke           Boolean?    @default(false)
+  restaurant      Boolean?    @default(false)
+  store           Boolean?    @default(false)
+  washing         Boolean?    @default(false)
+}
+
+model Dormitory_facilitate {
+  id              Int               @id @default(autoincrement())
+  dormitory_type  Dormitory_type    @relation(fields: [dmt_typeId], references: [id])
+  dmt_typeId      Int               @unique
+  fan             Boolean?          @default(false)
+  air             Boolean?          @default(false)
+  closet          Boolean?          @default(false)
+  water_heater    Boolean?          @default(false)
+  table           Boolean?          @default(false)
+  dressing_table  Boolean?          @default(false)
+  fridge          Boolean?          @default(false)
+  bed             Boolean?          @default(false)
+  tv              Boolean?          @default(false)
+}
